@@ -1,0 +1,2 @@
+/* JavaScript Component */
+/* Event listeners */
