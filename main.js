@@ -6,22 +6,35 @@ document.getElementById('copy_btn').addEventListener('click', copiedPage);
 /* Inspects the page and gives the template */
 function inspectPage() {
     const template = document.getElementById('template');
-    template.innerHTML = "Page inspected!";
+    template.innerHTML = `
+        <div class="template-content">
+        <strong>Page inspected!</strong><br>
+        <p>Here is the template for this page:</p>
+        <pre><code>## []()
+###    |   
+**Cast:**   •  
+**Genre:**   •  
+**Duration:** \`h m\`
+**IMDb Rating:**  :star:  
+> 
+    `;
 }
 
 /* Copies the content from the template onto clipboard */
 function copiedPage() {
-    const copy = document.getElementById('copy_btn');
+  const copy = document.getElementById('copy_btn');
+  const template = document.getElementById('template');
 
-    // Change text to "Copied!"
-    copy.textContent = "Copied!";
+  // Copy text to clipboard
+  navigator.clipboard.writeText(template.textContent);
 
-    // Disable button temporarily
-    copy.disabled = true;
+  // Change text to "Copied!"
+  copy.textContent = "Copied!";
+  copy.disabled = true;
 
-    // Changes back after 2 seconds
-    setTimeout(() => {
+  // Reset after 2 seconds
+  setTimeout(() => {
     copy.textContent = "Copy";
     copy.disabled = false;
-    }, 2000);
+  }, 2000);
 }
