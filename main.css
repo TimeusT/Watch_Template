@@ -4,6 +4,7 @@ body {
   padding: 20px;
   font-family: Arial, sans-serif;
   background-color: #424549;
+  width: 300px;
 }
 
 p {
@@ -46,7 +47,7 @@ pre {
   background-color: #1e2124;
   padding: 10px;
   border-radius: 6px;
-  overflow-x:inherit;
+  overflow-x: scroll;
 }
 code {
   font-family: Consolas, monospace;
