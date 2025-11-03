@@ -3,14 +3,18 @@ body {
   margin: 0;
   padding: 20px;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f5;
+  background-color: #424549;
+}
+
+p {
+    color: White;
 }
 
 /* Buttons */
 button {
   padding: 8px 16px;
   border: none;
-  background-color: #007bff;
+  background-color: #7289da;
   color: white;
   border-radius: 6px;
   cursor: pointer;
@@ -39,12 +43,12 @@ button:disabled {
 
 /* Code block style */
 pre {
-  background-color: #f0f0f0;
+  background-color: #1e2124;
   padding: 10px;
   border-radius: 6px;
-  overflow-x: auto;
+  overflow-x:inherit;
 }
 code {
   font-family: Consolas, monospace;
-  color: #333;
+  color: white;
 }

@@ -1,10 +1,21 @@
 {
-  "name": "Watch template generator!",
-  "description": "Automates the template for my discord watch channel!",
+  "name": "Watch Template Generator!",
+  "description": "Automates the template for my Discord watch channel!",
   "version": "1.0",
   "manifest_version": 3,
+
+  "permissions": ["activeTab", "scripting"],
+
+  "host_permissions": ["https://www.imdb.com/*"],
+
   "action": {
     "default_popup": "main.html",
     "default_icon": "Images/icon.png"
+  },
+
+  "background": { "service_worker": "background.js" },
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
