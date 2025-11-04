@@ -7,17 +7,17 @@ document.getElementById('copy_btn').addEventListener('click', copiedPage);
 /** Hide copy button initially */
 document.getElementById('copy_btn').style.display = 'none';
 
-/* 
- * Inspects the IMDb page and generates the template with info.
- * Extracts: title, genres, duration, rating, cast, year, age rating, storyline, poster.
- */
+/* Inspect IMDb page and generate template */
 async function inspectPage() {
   const inspectBtn = document.getElementById('inspect_btn');
   const copyBtn = document.getElementById('copy_btn');
   const template = document.getElementById('template');
 
-  // Remove background icon
-  document.body.style.backgroundImage = 'none';
+  // Change background to GIF while inspecting
+  document.body.style.backgroundImage = "url('Images/icon.gif')";
+  document.body.style.backgroundSize = "100% 100%";
+  document.body.style.backgroundPosition = "center center";
+  document.body.style.backgroundRepeat = "no-repeat";
 
   // Show loading state
   inspectBtn.innerHTML = 'Inspecting<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
@@ -33,145 +33,145 @@ async function inspectPage() {
       template.innerHTML = '<p style="color: red;">Please navigate to an IMDb title page first!</p>';
       inspectBtn.textContent = 'Inspect';
       inspectBtn.disabled = false;
+
+      // Revert background to static icon
+      document.body.style.backgroundImage = "url('Images/icon.png')";
       return;
     }
 
-/* Execute script inside IMDb tab */
-const [{ result: movieData }] = await chrome.scripting.executeScript({
-  target: { tabId: tab.id },
-  func: async () => {
-
-    /* Wait for DOM content and dynamic content */
-    await new Promise(resolve => {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', resolve, { once: true });
-      } else resolve();
-    });
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const getText = selector => {
-      const el = document.querySelector(selector);
-      return el ? el.textContent.trim() : "N/A";
-    };
-
-    /* --- Title --- */
-    const title = getText("h1");
-
-    /* --- Genres --- */
-    let genre = 'N/A';
-    const genreContainers = document.querySelectorAll('.ipc-chip-list__scroller');
-    if (genreContainers.length > 0) {
-      const genreEls = genreContainers[0].querySelectorAll('.ipc-chip__text');
-      genre = genreEls.length > 0
-        ? Array.from(genreEls)
-            .map(el => el.textContent.trim())
-            .filter(text => text.toLowerCase() !== 'back to top')
-            .join('  •  ')
-        : 'N/A';
-    }
-
-    /* --- Duration --- */
-    let duration = 'N/A';
-    const durationEl = document.querySelector('[data-testid="title-techspec_runtime"]');
-    if (durationEl) {
-      duration = durationEl.querySelector('.ipc-metadata-list-item__content-container')?.textContent.split('(')[0].trim() || 'N/A';
-    }
-
-    /* --- IMDb Rating --- */
-    const imdbRating = getText("[data-testid='hero-rating-bar__aggregate-rating__score'] span") || "N/A";
-
-    /* --- Cast (top 5 actors) --- */
-    const castEls = document.querySelectorAll('[data-testid="title-cast-item__actor"]');
-    const cast = castEls.length > 0
-      ? Array.from(castEls)
-          .map(el => el.textContent.trim())
-          .filter(name => name)
-          .slice(0, 5)
-          .join('  •  ')
-      : 'N/A';
-
-    /* --- Year + Age Rating --- */
-    let year = "N/A", ageRating = "N/A", isTVSeries = false;
-    document.querySelectorAll('.ipc-inline-list--show-dividers li a, .ipc-inline-list--show-dividers li')
-      .forEach(el => {
-        const text = el.textContent.trim();
-        if (/^(TV Series|TV Mini Series|Mini Series)$/i.test(text)) { ageRating = text; isTVSeries = true; }
-        else if (/^\d{4}(–\d{4})?$/.test(text) || /^\d{4}–$/.test(text)) year = text;
-        else if (!isTVSeries && /^(TV-MA|TV-14|TV-PG|TV-Y|TV-Y7|PG-13|PG|R|G|NC-17|NR|Not Rated|Unrated|U|12A?|15|18|MA|M)$/i.test(text)) ageRating = text;
-      });
-
-    /* --- STORYLINE --- */
-    let description = "There is no available storyline :(";
-
-    const loadStoryline = async () => {
-        // Scroll to bottom to trigger lazy content
-        window.scrollTo(0, document.body.scrollHeight);
+    /* Execute script inside IMDb tab */
+    const [{ result: movieData }] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: async () => {
+        await new Promise(resolve => {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', resolve, { once: true });
+          } else resolve();
+        });
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Attempt multiple selectors in order of priority
-        const selectors = [
-            '[data-testid="plot-xl"]',                      // main storyline on movie page
-            '[data-testid="plot-l"]',                       // fallback
-            '[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div',
-            '[data-testid="Storyline"] .ipc-html-content-inner-div'
-        ];
+        const getText = selector => {
+          const el = document.querySelector(selector);
+          return el ? el.textContent.trim() : "N/A";
+        };
 
-        for (const sel of selectors) {
-            const el = document.querySelector(sel);
-            if (el?.textContent?.trim()) {
-                description = el.textContent
-                    .replace(/—.*$/s, "")           // remove trailing dashes if present
-                    .replace(/\s+/g, ' ')          // normalize whitespace
-                    .trim();
-                break;
-            }
+        /* Title */
+        const title = getText("h1");
+
+        /* Genres */
+        let genre = 'N/A';
+        const genreContainers = document.querySelectorAll('.ipc-chip-list__scroller');
+        if (genreContainers.length > 0) {
+          const genreEls = genreContainers[0].querySelectorAll('.ipc-chip__text');
+          genre = genreEls.length > 0
+            ? Array.from(genreEls)
+                .map(el => el.textContent.trim())
+                .filter(text => text.toLowerCase() !== 'back to top')
+                .join('  •  ')
+            : 'N/A';
         }
 
-        // Scroll back to top smoothly
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    await loadStoryline();
+        /* Duration */
+        let duration = 'N/A';
+        const durationEl = document.querySelector('[data-testid="title-techspec_runtime"]');
+        if (durationEl) {
+          duration = durationEl.querySelector('.ipc-metadata-list-item__content-container')?.textContent.split('(')[0].trim() || 'N/A';
+        }
 
-    /* --- POSTER IMAGE --- */
-    let posterUrl = null;
-    const posterImg = document.querySelector('[data-testid="hero-media__poster"] img');
-    if (posterImg) posterUrl = posterImg.src;
+        /* IMDb Rating */
+        const imdbRating = getText("[data-testid='hero-rating-bar__aggregate-rating__score'] span") || "N/A";
 
-    return { title, genre, duration, imdbRating, cast, year, ageRating, description, posterUrl };
-  }
-});
+        /* Cast (top 5 actors) */
+        const castEls = document.querySelectorAll('[data-testid="title-cast-item__actor"]');
+        const cast = castEls.length > 0
+          ? Array.from(castEls)
+              .map(el => el.textContent.trim())
+              .filter(name => name)
+              .slice(0, 5)
+              .join('  •  ')
+          : 'N/A';
 
-// Inject poster in popup DOM
-const posterColumn = document.querySelector('.poster-column');
-posterColumn.innerHTML = movieData.posterUrl
-  ? `<img src="${movieData.posterUrl}" alt="${movieData.title} Poster" class="poster-img">`
-  : '';
+        /* Year + Age Rating */
+        let year = "N/A", ageRating = "N/A", isTVSeries = false;
+        document.querySelectorAll('.ipc-inline-list--show-dividers li a, .ipc-inline-list--show-dividers li')
+          .forEach(el => {
+            const text = el.textContent.trim();
+            if (/^(TV Series|TV Mini Series|Mini Series)$/i.test(text)) { ageRating = text; isTVSeries = true; }
+            else if (/^\d{4}(–\d{4})?$/.test(text) || /^\d{4}–$/.test(text)) year = text;
+            else if (!isTVSeries && /^(TV-MA|TV-14|TV-PG|TV-Y|TV-Y7|PG-13|PG|R|G|NC-17|NR|Not Rated|Unrated|U|12A?|15|18|MA|M)$/i.test(text)) ageRating = text;
+          });
 
-// Display the rest of the template
-template.innerHTML = `
-  <div class="template-content">
-    <strong style="color: white;">Page inspected!</strong><br>
-    <p>Here is the template for this page :D</p>
-    <pre class="code-block"><code>## [${movieData.title}](${tab.url})
+        /* Storyline */
+        let description = "There is no available storyline :(";
+        const loadStoryline = async () => {
+          window.scrollTo(0, document.body.scrollHeight);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          const selectors = [
+            '[data-testid="plot-xl"]',
+            '[data-testid="plot-l"]',
+            '[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div',
+            '[data-testid="Storyline"] .ipc-html-content-inner-div'
+          ];
+
+          for (const sel of selectors) {
+            const el = document.querySelector(sel);
+            if (el?.textContent?.trim()) {
+              description = el.textContent
+                .replace(/—.*$/s, "")
+                .replace(/\s+/g, ' ')
+                .trim();
+              break;
+            }
+          }
+
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        await loadStoryline();
+
+        /* Poster image */
+        let posterUrl = null;
+        const posterImg = document.querySelector('[data-testid="hero-media__poster"] img');
+        if (posterImg) posterUrl = posterImg.src;
+
+        return { title, genre, duration, imdbRating, cast, year, ageRating, description, posterUrl };
+      }
+    });
+
+    // Inject poster in popup DOM
+    const posterColumn = document.querySelector('.poster-column');
+    posterColumn.innerHTML = movieData.posterUrl
+      ? `<img src="${movieData.posterUrl}" alt="${movieData.title} Poster" class="poster-img">`
+      : '';
+
+    // Display template
+    template.innerHTML = `
+      <div class="template-content">
+        <strong style="color: white;">Page inspected!</strong><br>
+        <p>Here is the template for this page :D</p>
+        <pre class="code-block"><code>## [${movieData.title}](${tab.url})
 ### ${movieData.ageRating}   |   ${movieData.year}
 **Cast:**   ${movieData.cast}  
 **Genre:**   ${movieData.genre}  
 **Duration:**  \`${movieData.duration}\`
 **IMDb Rating:**  :star: ${movieData.imdbRating} 
 &gt; ${movieData.description}
-    </code></pre>
-  </div>
-`;
+        </code></pre>
+      </div>
+    `;
 
-  copyBtn.style.display = 'inline-block';
+    copyBtn.style.display = 'inline-block';
+
   } catch (error) {
     console.error("Error:", error);
     template.innerHTML =
       "<p style='color: red;'>Error inspecting page. Make sure you're on a valid IMDb movie page.</p>";
   }
 
+  // Reset button text & remove background GIF
   inspectBtn.textContent = 'Inspect';
   inspectBtn.disabled = false;
+  document.body.style.backgroundImage = 'none';
 }
 
 /* Copies template content to clipboard */
