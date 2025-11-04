@@ -172,7 +172,7 @@ async function inspectPage() {
             <strong style="color: white;">Page inspected!</strong><br>
             <p>Here is the template for this page :D</p>
             <pre class="code-block"><code>## [${movieData.title}](${cleanUrl})
-### ${movieData.ageRating} | ${movieData.year}
+### ${movieData.ageRating}   |   ${movieData.year}
 **Cast:**  ${movieData.cast}
 **Genre:**  ${movieData.genre}
 **Duration:**  \`${movieData.duration}\`
