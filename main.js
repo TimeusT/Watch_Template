@@ -1,13 +1,13 @@
 /* JavaScript Component */
 
-/** Event listeners for buttons */
+/* Event listeners for buttons */
 document.getElementById('inspect_btn').addEventListener('click', inspectPage);
 document.getElementById('copy_btn').addEventListener('click', copiedPage);
 
 /** Hide copy button initially */
 document.getElementById('copy_btn').style.display = 'none';
 
-/** 
+/* 
  * Inspects the IMDb page and generates the template with info.
  * Extracts: title, genres, duration, rating, cast, year, age rating, storyline, poster.
  */
@@ -16,8 +16,11 @@ async function inspectPage() {
   const copyBtn = document.getElementById('copy_btn');
   const template = document.getElementById('template');
 
+  // Remove background icon
+  document.body.style.backgroundImage = 'none';
+
   // Show loading state
-  inspectBtn.textContent = 'Inspecting...';
+  inspectBtn.innerHTML = 'Inspecting<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
   inspectBtn.disabled = true;
   copyBtn.style.display = 'none';
   template.innerHTML = '';
@@ -33,28 +36,28 @@ async function inspectPage() {
       return;
     }
 
-/** Execute script inside IMDb tab */
+/* Execute script inside IMDb tab */
 const [{ result: movieData }] = await chrome.scripting.executeScript({
   target: { tabId: tab.id },
   func: async () => {
 
-    /** Wait for DOM content and dynamic content */
+    /* Wait for DOM content and dynamic content */
     await new Promise(resolve => {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', resolve, { once: true });
       } else resolve();
     });
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const getText = selector => {
       const el = document.querySelector(selector);
       return el ? el.textContent.trim() : "N/A";
     };
 
-    /** --- Title --- */
+    /* --- Title --- */
     const title = getText("h1");
 
-    /** --- Genres --- */
+    /* --- Genres --- */
     let genre = 'N/A';
     const genreContainers = document.querySelectorAll('.ipc-chip-list__scroller');
     if (genreContainers.length > 0) {
@@ -67,17 +70,17 @@ const [{ result: movieData }] = await chrome.scripting.executeScript({
         : 'N/A';
     }
 
-    /** --- Duration --- */
+    /* --- Duration --- */
     let duration = 'N/A';
     const durationEl = document.querySelector('[data-testid="title-techspec_runtime"]');
     if (durationEl) {
       duration = durationEl.querySelector('.ipc-metadata-list-item__content-container')?.textContent.split('(')[0].trim() || 'N/A';
     }
 
-    /** --- IMDb Rating --- */
+    /* --- IMDb Rating --- */
     const imdbRating = getText("[data-testid='hero-rating-bar__aggregate-rating__score'] span") || "N/A";
 
-    /** --- Cast (top 5 actors) --- */
+    /* --- Cast (top 5 actors) --- */
     const castEls = document.querySelectorAll('[data-testid="title-cast-item__actor"]');
     const cast = castEls.length > 0
       ? Array.from(castEls)
@@ -87,7 +90,7 @@ const [{ result: movieData }] = await chrome.scripting.executeScript({
           .join('  •  ')
       : 'N/A';
 
-    /** --- Year + Age Rating --- */
+    /* --- Year + Age Rating --- */
     let year = "N/A", ageRating = "N/A", isTVSeries = false;
     document.querySelectorAll('.ipc-inline-list--show-dividers li a, .ipc-inline-list--show-dividers li')
       .forEach(el => {
@@ -97,36 +100,39 @@ const [{ result: movieData }] = await chrome.scripting.executeScript({
         else if (!isTVSeries && /^(TV-MA|TV-14|TV-PG|TV-Y|TV-Y7|PG-13|PG|R|G|NC-17|NR|Not Rated|Unrated|U|12A?|15|18|MA|M)$/i.test(text)) ageRating = text;
       });
 
-    /** --- STORYLINE --- */
+    /* --- STORYLINE --- */
     let description = "There is no available storyline :(";
+
     const loadStoryline = async () => {
-      window.scrollTo(0, document.body.scrollHeight);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+        // Scroll to bottom to trigger lazy content
+        window.scrollTo(0, document.body.scrollHeight);
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-      let storylineDiv =
-        document.querySelector('[data-testid="Storyline"] .ipc-html-content-inner-div') ||
-        document.querySelector('[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div');
+        // Attempt multiple selectors in order of priority
+        const selectors = [
+            '[data-testid="plot-xl"]',                      // main storyline on movie page
+            '[data-testid="plot-l"]',                       // fallback
+            '[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div',
+            '[data-testid="Storyline"] .ipc-html-content-inner-div'
+        ];
 
-      if (!storylineDiv) {
-        const headings = document.querySelectorAll('h3');
-        for (const heading of headings) {
-          if (heading.textContent.trim() === 'Storyline') {
-            const section = heading.closest('section');
-            if (section) storylineDiv = section.querySelector('.ipc-html-content-inner-div');
-            break;
-          }
+        for (const sel of selectors) {
+            const el = document.querySelector(sel);
+            if (el?.textContent?.trim()) {
+                description = el.textContent
+                    .replace(/—.*$/s, "")           // remove trailing dashes if present
+                    .replace(/\s+/g, ' ')          // normalize whitespace
+                    .trim();
+                break;
+            }
         }
-      }
 
-      if (storylineDiv?.textContent.trim()) {
-        description = storylineDiv.textContent.replace(/—.*$/s, "").trim();
-      }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Scroll back to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     await loadStoryline();
 
-    /** --- POSTER IMAGE --- */
+    /* --- POSTER IMAGE --- */
     let posterUrl = null;
     const posterImg = document.querySelector('[data-testid="hero-media__poster"] img');
     if (posterImg) posterUrl = posterImg.src;
@@ -145,7 +151,7 @@ posterColumn.innerHTML = movieData.posterUrl
 template.innerHTML = `
   <div class="template-content">
     <strong style="color: white;">Page inspected!</strong><br>
-    <p>Here is the template for this page:</p>
+    <p>Here is the template for this page :D</p>
     <pre class="code-block"><code>## [${movieData.title}](${tab.url})
 ### ${movieData.ageRating}   |   ${movieData.year}
 **Cast:**   ${movieData.cast}  
@@ -168,7 +174,7 @@ template.innerHTML = `
   inspectBtn.disabled = false;
 }
 
-/** Copies template content to clipboard */
+/* Copies template content to clipboard */
 function copiedPage() {
   const template = document.getElementById('template');
   const copyBtn = document.getElementById('copy_btn');
