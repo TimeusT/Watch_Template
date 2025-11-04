@@ -12,8 +12,13 @@ async function inspectPage() {
   const inspectBtn = document.getElementById('inspect_btn');
   const copyBtn = document.getElementById('copy_btn');
   const template = document.getElementById('template');
+  const posterColumn = document.querySelector('.poster-column');
 
-  // Change background to GIF while inspecting
+  // Clear previous poster and template
+  template.innerHTML = '';
+  posterColumn.innerHTML = '';
+
+  // Remove previous background / set GIF
   document.body.style.backgroundImage = "url('Images/icon.gif')";
   document.body.style.backgroundSize = "100% 100%";
   document.body.style.backgroundPosition = "center center";
@@ -23,7 +28,6 @@ async function inspectPage() {
   inspectBtn.innerHTML = 'Inspecting<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
   inspectBtn.disabled = true;
   copyBtn.style.display = 'none';
-  template.innerHTML = '';
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
