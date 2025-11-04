@@ -126,7 +126,7 @@ async function inspectPage() {
                 let description = "No available storyline :(";
                 const loadDescription = async () => {
                     window.scrollTo(0, document.body.scrollHeight);
-                    await new Promise(r => setTimeout(r, 1200));
+                    await new Promise(r => setTimeout(r,1500));
 
                     const selectors = [
                         '[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div', // preferred
@@ -200,9 +200,6 @@ function copiedPage() {
     const copyBtn = document.getElementById('copy_btn');
     const codeElement = template.querySelector('code');
     const textToCopy = codeElement ? codeElement.textContent : template.textContent;
-
-    // Change background to lemon while copying
-    setBackground('Images/icon_lemon.png');
 
     navigator.clipboard.writeText(textToCopy).then(() => {
         copyBtn.textContent = "Copied!";
