@@ -8,9 +8,8 @@ body {
   background-color: #424549;
 }
 
-/* Background container with opacity */
-body::before {
-  content: "";
+/* Background overlay - controlled by JavaScript */
+.bg-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -19,15 +18,14 @@ body::before {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: center center;
-  opacity: 0.3; /* opacity for static icon / lemon */
   pointer-events: none;
   z-index: 0;
-  transition: background-image 0.2s ease;
-  background-image: var(--bg-image, url('Images/icon.png')); /* default icon */
+  opacity: 0.3;
+  transition: background-image 0.2s ease, opacity 0.2s ease;
 }
 
 /* Ensure content appears above background */
-body > * {
+body > *:not(.bg-overlay) {
   position: relative;
   z-index: 1;
 }
@@ -167,4 +165,35 @@ code {
 }
 .dots span:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+/* Copy movie poster overlay */
+.poster-container {
+  position: relative;
+  display: inline-block;
+  width: 150px; /* match poster-img width */
+}
+
+.poster-img {
+  width: 100%;
+  border-radius: 6px;
+  display: block;
+}
+
+.poster-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;           /* covers full image width */
+  height: 100%;          /* covers full image height */
+  border-radius: 6px;
+  background: rgba(0,0,0,0.5) url('Images/copy_icon.png') center center no-repeat;
+  background-size: 60px 60px; /* keeps icon readable */
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  cursor: pointer;
+}
+
+.poster-container:hover .poster-overlay {
+  opacity: 0.7;          /* visible when hovering */
 }

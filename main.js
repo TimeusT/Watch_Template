@@ -158,10 +158,103 @@ async function inspectPage() {
             }
         });
 
-        // Inject poster in popup DOM
-        posterColumn.innerHTML = movieData.posterUrl
-            ? `<img src="${movieData.posterUrl}" alt="${movieData.title} Poster" class="poster-img">`
-            : '';
+        // Inject poster into popup DOM
+        posterColumn.innerHTML = movieData.posterUrl ? `
+        <div class="poster-container">
+            <img src="${movieData.posterUrl}" alt="${movieData.title} Poster" class="poster-img">
+            <div class="poster-overlay"></div>
+        </div>
+        ` : '';
+
+        // Copy poster image to clipboard on overlay click
+        const overlay = posterColumn.querySelector('.poster-overlay');
+        if (overlay && movieData.posterUrl) {
+            overlay.addEventListener('click', async () => {
+                try {
+                    // Show loading state on overlay
+                    overlay.style.cursor = 'wait';
+                    overlay.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; font-weight: bold; font-size: 14px;">Copying...</div>';
+                    
+                    console.log('Attempting to copy image from:', movieData.posterUrl);
+                    
+                    // Ask background.js to fetch the image (bypasses CORS)
+                    const response = await chrome.runtime.sendMessage({
+                        action: "fetchImage",
+                        url: movieData.posterUrl
+                    });
+
+                    console.log('Response from background:', response);
+
+                    if (!response || !response.success) {
+                        throw new Error(response ? response.error : "No response from background");
+                    }
+
+                    // Create blob from array buffer
+                    const blob = new Blob([new Uint8Array(response.buffer)], { type: response.type });
+                    console.log('Created blob:', blob.type, blob.size, 'bytes');
+
+                    // Load image into an Image element
+                    const img = new Image();
+                    const imageUrl = URL.createObjectURL(blob);
+                    
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = imageUrl;
+                    });
+
+                    console.log('Image loaded, dimensions:', img.width, 'x', img.height);
+
+                    // Draw image to canvas
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    // Convert canvas to blob
+                    const canvasBlob = await new Promise(resolve => {
+                        canvas.toBlob(resolve, 'image/png');
+                    });
+
+                    console.log('Canvas blob created:', canvasBlob.size, 'bytes');
+
+                    // Clean up
+                    URL.revokeObjectURL(imageUrl);
+
+                    // Copy to clipboard using ClipboardItem
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            'image/png': canvasBlob
+                        })
+                    ]);
+
+                    console.log('Successfully copied to clipboard!');
+
+                    // Visual feedback - image copied successfully
+                    overlay.style.cursor = 'pointer';
+                    overlay.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #4CAF50; font-weight: bold; font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">✓ Copied!</div>';
+                    
+                    setTimeout(() => {
+                        overlay.innerHTML = '';
+                    }, 1500);
+
+                } catch (err) {
+                    console.error("Detailed error copying image:", err);
+                    console.error("Error name:", err.name);
+                    console.error("Error message:", err.message);
+                    overlay.style.cursor = 'pointer';
+
+                    // Show specific error message
+                    const errorMsg = err.message || 'Unknown error';
+                    overlay.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #f44336; font-weight: bold; font-size: 11px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); padding: 5px; text-align: center;">Failed!<br>${errorMsg.substring(0, 25)}</div>`;
+                    
+                    setTimeout(() => {
+                        overlay.innerHTML = '';
+                    }, 3000);
+                }
+            });
+        }
 
         // Extract clean URL (keep only /title/ttXXXXXXX)
         const cleanUrl = tab.url.match(/https:\/\/www\.imdb\.com\/title\/tt\d+/)[0];
