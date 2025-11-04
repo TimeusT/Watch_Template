@@ -7,20 +7,24 @@
         <title>Watch Template Generator</title>
     </head>
     <body>
-        <!-- 'Inspect' button -->
-        <div class="inspect-button">
-            <button id="inspect_btn">Inspect</button>
-        </div>
-        <br>
-        
-        <!-- Gives template to copy (with a copy button) -->
-        <div class="copy-button">
-            <button id="copy_btn">Copy</button>
+        <!-- Buttons + Poster container -->
+        <div class="top-row">
+            <div class="buttons-column">
+                <div class="inspect-button">
+                    <button id="inspect_btn">Inspect</button>
+                </div>
+                <div class="copy-button">
+                    <button id="copy_btn">Copy</button>
+                </div>
+            </div>
+            <div class="poster-column">
+                <!-- Poster will be injected here by JS -->
+            </div>
         </div>
 
         <!-- Template display -->
         <p id="template"></p>
-        
+
         <script src="main.js"></script>
     </body>
 </html>

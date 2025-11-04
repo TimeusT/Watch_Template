@@ -42,6 +42,20 @@ button:disabled {
   margin: 5px 0;
 }
 
+/* Scrollbar style to match code block */
+pre::-webkit-scrollbar {
+  width: 8px;
+}
+
+pre::-webkit-scrollbar-track {
+  background: #1e2124; /* matches code background */
+}
+
+pre::-webkit-scrollbar-thumb {
+  background-color: #424549; /* thumb for contrast */
+  border-radius: 4px;
+}
+
 /* Code block style */
 pre {
   background-color: #1e2124;
@@ -53,3 +67,26 @@ code {
   font-family: Consolas, monospace;
   color: white;
 }
+
+/* Container for buttons + poster */
+.top-row {
+    display: flex;
+    align-items: flex-start; /* Align top of buttons and poster */
+    gap: 15px; /* Space between buttons and poster */
+    margin-bottom: 15px;
+}
+
+/* Buttons stacked vertically */
+.buttons-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between Inspect and Copy buttons */
+}
+
+/* Poster image styling */
+.poster-column img {
+    max-width: 120px; /* Adjust size to fit nicely */
+    border-radius: 6px;
+    margin-left: auto; /* Pushes the image to the right */
+}
+
