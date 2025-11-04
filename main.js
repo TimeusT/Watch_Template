@@ -88,7 +88,7 @@ async function inspectPage() {
                         ? Array.from(genreEls)
                             .map(el => el.textContent.trim())
                             .filter(text => text.toLowerCase() !== 'back to top')
-                            .join(' • ')
+                            .join('  •  ')
                         : 'N/A';
                 }
 
@@ -109,7 +109,7 @@ async function inspectPage() {
                         .map(el => el.textContent.trim())
                         .filter(name => name)
                         .slice(0, 5)
-                        .join(' • ')
+                        .join('  •  ')
                     : 'N/A';
 
                 /* Year + Age Rating */
@@ -173,10 +173,10 @@ async function inspectPage() {
             <p>Here is the template for this page :D</p>
             <pre class="code-block"><code>## [${movieData.title}](${cleanUrl})
 ### ${movieData.ageRating} | ${movieData.year}
-**Cast:** ${movieData.cast}
-**Genre:** ${movieData.genre}
-**Duration:** \`${movieData.duration}\`
-**IMDb Rating:** :star: ${movieData.imdbRating}
+**Cast:**  ${movieData.cast}
+**Genre:**  ${movieData.genre}
+**Duration:**  \`${movieData.duration}\`
+**IMDb Rating:**  :star: ${movieData.imdbRating}
 &gt; ${movieData.description}
             </code></pre>
         </div>`;
